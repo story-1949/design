@@ -24,6 +24,12 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 AI E-commerce Bot 启动中...")
     try:
         init_db()
+        
+        # 启动会话清理任务
+        from app.services.session_manager import SessionManager
+        session_manager = SessionManager()
+        session_manager.start_cleanup_task()
+        
         logger.info(f"📝 API 文档: http://{settings.HOST}:{settings.PORT}/docs")
         logger.info(f"🌍 环境: {settings.ENVIRONMENT}")
         yield

@@ -24,10 +24,18 @@ class SessionManager:
             # 使用内存存储（生产环境应使用 Redis）
             self.sessions: Dict[str, Dict] = {}
             self.session_timeout = timedelta(seconds=settings.SESSION_TIMEOUT)
+            self._cleanup_task = None
             self.initialized = True
-            
-            # 启动定期清理任务
-            asyncio.create_task(self._cleanup_loop())
+    
+    def start_cleanup_task(self):
+        """启动清理任务（在事件循环中调用）"""
+        if self._cleanup_task is None:
+            try:
+                self._cleanup_task = asyncio.create_task(self._cleanup_loop())
+                logger.info("会话清理任务已启动")
+            except RuntimeError:
+                # 如果没有运行的事件循环，忽略
+                pass
 
     async def create_session(self, user_id: Optional[str] = None) -> Dict:
         """创建新会话"""
